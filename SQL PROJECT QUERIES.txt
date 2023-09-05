@@ -1,0 +1,61 @@
+1.	Based on the number of tracks, which country is the best lover of 
+Jazz music?
+
+SELECT Customer.Country,
+       COUNT(Track.Name) AS Jazz_track
+FROM Invoice
+JOIN InvoiceLine ON InvoiceLine.InvoiceId = Invoice.InvoiceId
+JOIN Track ON InvoiceLine.TrackId = Track.TrackId
+JOIN Genre ON Track.GenreId = Genre.GenreId
+JOIN Customer ON Invoice.CustomerId = Customer.CustomerId
+WHERE Genre.Name = "Jazz"
+GROUP BY 1
+ORDER BY 2 DESC
+LIMIT 5;
+
+
+2.	In what year did Rock music sell the most?
+
+SELECT STRFTIME('%Y', InvoiceDate) AS YEAR,
+       SUM(InvoiceLine.UnitPrice * InvoiceLine.Quantity) AS Amount
+FROM Invoice
+JOIN InvoiceLine ON InvoiceLine.InvoiceId = Invoice.InvoiceId
+JOIN Track ON InvoiceLine.TrackId = Track.TrackId
+JOIN Genre ON Track.GenreId = Genre.GenreId
+JOIN Customer ON Invoice.CustomerId = Customer.CustomerId
+WHERE Genre.Name = "Rock"
+GROUP BY 1
+ORDER BY 2;
+
+
+3.	The customer that has spent the most on music for each country, 
+and how much spent according to the Invoice.
+ 
+WITH T1 AS
+  (SELECT Customer.FirstName AS FirstName,
+          Customer.LastName AS LastName,
+          Customer.Country AS Country,
+          SUM(Invoice.Total) AS Amount_spent,
+          Customer.CustomerId AS CustomerId
+   FROM Invoice
+   JOIN Customer ON Invoice.CustomerId = Customer.CustomerId
+   GROUP BY 5)
+SELECT T1.Country,
+       (T1.FirstName||" "||T1.LastName) AS Best_customer,
+       MAX(T1.Amount_spent) AS Amount_spent
+FROM T1
+GROUP BY 1
+ORDER BY 3 DESC;
+
+
+4.	First 5 top earning artists according to the InvoiceLines
+
+SELECT Artist.Name AS Artist_name,
+       ROUND(SUM(InvoiceLine.UnitPrice * InvoiceLine.Quantity), 0) AS Amount_earned
+FROM Artist
+JOIN Album ON Album.ArtistId = Artist.ArtistId
+JOIN Track ON Track.AlbumId = Album.AlbumId
+JOIN InvoiceLine ON InvoiceLine.TrackId = Track.TrackId
+GROUP BY 1
+ORDER BY 2 DESC
+LIMIT 5;
